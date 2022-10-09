@@ -76,12 +76,13 @@ if __name__ == '__main__':
     print(opt)
 
     source = ["Image", "Video","Webcam"] 
-    source_index = st.sidebar.radio("selectbox", range(
+    source_index = st.sidebar.radio("Select the input source:", range(
         len(source)), format_func=lambda x: source[x]) 
+    is_valid=False
 
     if source_index == 0:
         uploaded_file = st.sidebar.file_uploader(
-            "image", type=['png', 'jpeg', 'jpg'])
+            "Upload an Image", type=['png', 'jpeg', 'jpg'])
 
         if uploaded_file is None:
             with st.sidebar:
@@ -98,7 +99,7 @@ if __name__ == '__main__':
             is_valid = False
 
     elif source_index == 1:
-        uploaded_file = st.sidebar.file_uploader("video", type=['mp4', 'mpeg', 'mov'])
+        uploaded_file = st.sidebar.file_uploader("Upload a Video", type=['mp4', 'mpeg', 'mov'])
         if uploaded_file is None:
             with st.sidebar:
                 st.header("Please upload a video file")
@@ -113,10 +114,21 @@ if __name__ == '__main__':
         else:
             is_valid = False
 
-    else:
-        is_valid = True
-        opt.source = str(0) 
-        opt.nosave = True
+    #for using webcam
+    elif source_index == 2:
+        st.sidebar.write("Press the button below to start the webcam")
+        if st.sidebar.button("Start Webcam"):
+            with st.spinner(text='Loading...'): 
+                opt.source = str(0) 
+                opt.nosave = True
+                is_valid = True
+                detect(opt)
+                st.success("Object detection done!")
+                st.balloons()
+                st.sidebar.write("Press the button below to view the output")
+                if st.sidebar.button("View Output"):
+                    st.image(get_detection_folder() + '/webcam.jpg')
+
 
     col2, col3 = st.columns([6,1])
 

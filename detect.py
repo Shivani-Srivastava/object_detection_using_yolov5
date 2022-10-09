@@ -7,8 +7,10 @@ import torch
 import torch.backends.cudnn as cudnn
 from numpy import random
 
+# from models.common import DetectMultiBackend 
+# from utils.dataloaders import IMG_FORMATS, VID_FORMATS, LoadImages, LoadScreenshots, LoadStreams
 from models.experimental import attempt_load
-from utils.datasets import LoadStreams, LoadImages
+from utils.datasets import LoadStreams, LoadImages 
 from utils.general import check_img_size, check_requirements, check_imshow, non_max_suppression, apply_classifier, \
     scale_coords, xyxy2xywh, strip_optimizer, set_logging, increment_path
 from utils.plots import plot_one_box
@@ -20,8 +22,9 @@ def detect(opt, save_img=False):
 
     save_img = not opt.nosave and not source.endswith( 
         '.txt')  # save inference images
-    webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
-        ('rtsp://', 'rtmp://', 'http://', 'https://')) 
+    # is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
+    is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://'))
+    webcam = source.isnumeric() or source.endswith('.txt') or (is_url)
 
     # Directories
     save_dir = Path(increment_path(Path(opt.project) / opt.name,
@@ -36,6 +39,8 @@ def detect(opt, save_img=False):
 
     # Load model
     model = attempt_load(weights, map_location=device)  # load FP32 model
+    # model=DetectMultiBackend(weights, device=device)
+    # stride, names = model.stride, model.names
     stride = int(model.stride.max())  # model stride
     imgsz = check_img_size(imgsz, s=stride)  # check img_size
     if half:
@@ -53,7 +58,7 @@ def detect(opt, save_img=False):
     if webcam:
         view_img = check_imshow()
         cudnn.benchmark = True  # set True to speed up constant image size inference 
-        dataset = LoadStreams(source, img_size=imgsz, stride=stride)
+        dataset = LoadStreams(source, img_size=imgsz, stride=stride) 
     else:
         dataset = LoadImages(source, img_size=imgsz, stride=stride)
 
