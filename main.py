@@ -44,15 +44,15 @@ if __name__ == '__main__':
                         default='data/images', help='source')
     parser.add_argument('--img-size', type=int, default=640,
                         help='inference size (pixels)')
-    parser.add_argument('--conf-thres', type=float,
-                        default=0.35, help='object confidence threshold')
+    parser.add_argument('--conf_thres', type=float,
+                        default=0.35, help='object confidence threshold') 
     parser.add_argument('--iou-thres', type=float,
                         default=0.45, help='IOU threshold for NMS')
     parser.add_argument('--device', default='',
                         help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--view-img', action='store_true',
                         help='display results')
-    parser.add_argument('--save-txt', action='store_true',
+    parser.add_argument('--save_txt', action='store_true',
                         help='save results to *.txt')
     parser.add_argument('--save-conf', action='store_true',
                         help='save confidences in --save-txt labels')
@@ -72,7 +72,7 @@ if __name__ == '__main__':
                         help='save results to project/name')
     parser.add_argument('--exist-ok', action='store_true',
                         help='existing project/name ok, do not increment')
-    opt = parser.parse_args()
+    opt = parser.parse_args() 
     print(opt)
 
     source = ["Image", "Video","Webcam"] 
@@ -81,15 +81,11 @@ if __name__ == '__main__':
     is_valid=False
 
     if source_index == 0:
-        uploaded_file = st.sidebar.file_uploader(
-            "Upload an Image", type=['png', 'jpeg', 'jpg'])
-
-        if uploaded_file is None:
-            with st.sidebar:
-                st.header("Please upload an image file") 
+        uploaded_file = st.sidebar.file_uploader("Upload an Image", type=['png', 'jpeg', 'jpg'])
 
         if uploaded_file is not None:
             is_valid = True
+            opt.conf_thres = st.sidebar.slider('Confidence Threshold', 0.00, 1.00, 0.35, 0.05)
             with st.spinner(text='Loading...'): 
                 st.sidebar.image(uploaded_file)
                 picture = Image.open(uploaded_file)
@@ -97,22 +93,24 @@ if __name__ == '__main__':
                 opt.source = f'data/images/{uploaded_file.name}'
         else:
             is_valid = False
+            with st.sidebar:
+                st.header("Please upload an image file") 
 
     elif source_index == 1:
         uploaded_file = st.sidebar.file_uploader("Upload a Video", type=['mp4', 'mpeg', 'mov'])
-        if uploaded_file is None:
-            with st.sidebar:
-                st.header("Please upload a video file")
 
         if uploaded_file is not None:
             is_valid = True
             with st.spinner(text='Loading...'): 
                 st.sidebar.video(uploaded_file)
-                with open(os.path.join("data", "videos", uploaded_file.name), "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                opt.source = f'data/videos/{uploaded_file.name}'
+                with open(os.path.join("data", "videos", uploaded_file.name), "wb") as f: 
+                    f.write(uploaded_file.getbuffer()) 
+                opt.source = f'data/videos/{uploaded_file.name}' 
         else:
             is_valid = False
+            with st.sidebar:
+                st.header("Please upload a video file")
+            
 
     #for using webcam
     elif source_index == 2:
@@ -121,6 +119,7 @@ if __name__ == '__main__':
             with st.spinner(text='Loading...'): 
                 opt.source = str(0) 
                 opt.nosave = True
+                opt.save_txt = True
                 is_valid = True
                 detect(opt)
                 st.success("Object detection done!")
@@ -135,8 +134,11 @@ if __name__ == '__main__':
     if is_valid:
         print('valid')
         if st.button('Click Here To Start Detection'): # when the button is clicked
+            my_file=Path("detection.csv")
+            if my_file.is_file():
+                os.remove("detection.csv") 
 
-            detect(opt) 
+            detect(opt,source_index) 
 
             with col2:
                 if source_index == 0:
@@ -152,4 +154,18 @@ if __name__ == '__main__':
                             st.video(str(Path(f'{get_detection_folder()}') / vid))
 
                         st.balloons()
+                        
+                        #download detection.csv file 
+                        st.write("Download the detection.csv file")
+                        import pandas as pd
+                        df=pd.read_csv("detection.csv")
+                        df.columns=['Timestamp','Class','Confidence']
+                        csv = df.to_csv(index=True).encode('utf-8')
+
+                        st.download_button(
+                            label="Download CSV",
+                            data=csv,
+                            file_name='detection.csv',
+                            mime='text/csv'
+                        )
                         
