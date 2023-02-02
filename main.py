@@ -75,7 +75,7 @@ if __name__ == '__main__':
     opt = parser.parse_args() 
     print(opt)
 
-    source = ["Image", "Video","Webcam"] 
+    source = ["Image", "Video"] 
     source_index = st.sidebar.radio("Select the input source:", range(
         len(source)), format_func=lambda x: source[x]) 
     is_valid=False
